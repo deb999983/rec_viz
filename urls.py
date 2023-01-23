@@ -13,14 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf.urls import url
-from rest_framework_swagger.views import get_swagger_view
+from django.urls import path, include
+from drf_spectacular.views import SpectacularSwaggerSplitView, SpectacularAPIView
 
 from api.views import VisualizeRecursionTreeView
 
 urlpatterns = [
-    url(r'^visualize/$', VisualizeRecursionTreeView.as_view()),
-    url(r'^docs/$', get_swagger_view(title='Visualizer'))
+	path('swagger/', SpectacularSwaggerSplitView.as_view(), name='swagger'),
+	path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('visualize/', VisualizeRecursionTreeView.as_view()),
 ]
 
 

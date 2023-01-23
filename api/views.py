@@ -6,8 +6,6 @@ from rest_framework.response import Response
 from api.serializers import VisualizeFunctionSerializer, RecursionTreeSerializer
 from api.visualizer import Visualize
 
-# from RestrictedPython import compile_restricted, safe_globals
-
 
 def create_func_visualizer(func_str, func_name):
 	local_scope = {}

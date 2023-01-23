@@ -110,6 +110,11 @@ def recur_fibo(n):
 		return n
 	else:
 		return recur_fibo(n-1) + recur_fibo(n-2)
+
+
+if __name__ == "__main__":
+	from api.visualizer import Visualize
+	Visualize(function)
 """
 
 # import gc, tracemalloc, functools
