@@ -33,7 +33,8 @@ INSTALLED_APPS = [
 	'django.contrib.staticfiles',
 	"corsheaders",
 	"rest_framework",
-	"drf_spectacular"
+	"drf_spectacular",
+	"applications.job"
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -46,7 +47,7 @@ MIDDLEWARE = [
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'api.urls'
 
 TEMPLATES = [
 	{
@@ -64,7 +65,7 @@ TEMPLATES = [
 	},
 ]
 
-WSGI_APPLICATION = 'wsgi.application'
+WSGI_APPLICATION = 'api.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -94,16 +95,16 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-# DATABASES = {
-# 	'default': {
-# 		'ENGINE': 'django.db.backends.postgresql',
-# 		'HOST': 'wiki_store_db',
-# 		'PORT': '5432',
-# 		'NAME': 'wiki_store_new',
-# 		'USER': 'postgres',
-# 		'PASSWORD': 'postgres'
-# 	}
-# }
+DATABASES = {
+	'default': {
+		'ENGINE': 'django.db.backends.postgresql',
+		'HOST': 'rec_viz_db',
+		'PORT': '5432',
+		'NAME': 'rec_viz',
+		'USER': 'postgres',
+		'PASSWORD': 'postgres'
+	}
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -143,3 +144,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+QUEUE_CONN_PARAMS = {
+	"host": os.environ.get("REDIS_HOST", "localhost"),
+	"port": os.environ.get("REDIS_PORT", 6380)
+}

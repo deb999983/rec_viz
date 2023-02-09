@@ -1,0 +1,3 @@
+CREATE DATABASE rec_viz;
+CREATE USER postgres WITH PASSWORD 'postgres';
+GRANT ALL PRIVILEGES ON DATABASE rec_viz TO postgres;

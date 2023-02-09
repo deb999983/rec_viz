@@ -1,0 +1,7 @@
+{
+    "data_files": {
+        "airbnb_data": "app/data/Airbnb_data_New_York.csv",
+        "newyork_property_sales": "app/data/Property_sales_data_New_York.csv",
+        "weather_data": "app/data/Weather Data.xlsx"
+    }
+}

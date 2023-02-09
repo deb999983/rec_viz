@@ -1,0 +1,1 @@
+docker-compose up ratestask_db -d

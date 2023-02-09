@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+
+  rec_viz_airflow_db:
+    image: rec_viz_airflow_db
+    build:
+      context: airflow/db
+    container_name: rec_viz_airflow_db
+    restart: always
+    ports:
+      - 5932:5432
+    volumes:
+      - airflow_data:/var/lib/postgresql/data
+
+  rec_viz_db:
+    image: rec_viz_db
+    build:
+      context: server/db
+    container_name: rec_viz_db
+    restart: always
+    ports:
+      - 5933:5432
+    volumes:
+      - rec_viz_db:/var/lib/postgresql/data
+
+  job_queue:
+    image: redis:6.0-alpine
+    container_name: job_queue
+    depends_on:
+      - rec_viz_db
+      - rec_viz_airflow_db
+    ports:
+      - 6380:6379
+    volumes: 
+      - job_queue:/data
+
+  rec_viz_server:
+    image: rec_viz_server
+    build:
+      context: server
+    container_name: rec_viz_server
+    restart: always
+    depends_on:
+      - job_queue
+    ports:
+      - 8000:8000
+    volumes:
+      - ./server:/workspaces/rec_viz_server:rw
+      - ./common:/workspaces/rec_viz_server/common:rw
+
+  airflow_server:
+    image: airflow_server
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: airflow_server
+    restart: always
+    depends_on:
+      - rec_viz_airflow_db
+    ports:
+      - 8080:8080
+    volumes:
+      - ./airflow:/workspaces/airflow:rw
+      - ./common:/workspaces/airflow/common:rw
+      - ./server/applications:/workspaces/airflow/applications:rw
+
+volumes:
+  airflow_data: 
+  rec_viz_db:
+  job_queue:

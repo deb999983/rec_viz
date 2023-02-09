@@ -1,0 +1,3 @@
+psycopg2
+django
+apache-airflow-providers-google[amazon,postgres]

@@ -1,22 +1,29 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "Python 3",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/python:0-3.10",
+	"name": "Recursion Visualizer",
+	// Sets the run context to one level up instead of the .devcontainer folder.
+	"context": "..",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
+	"dockerFile": "Dockerfile",
+	
+	"initializeCommand": "./.devcontainer/start_databases.sh",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"runArgs": [
+		"--network=rec_viz_default"
+	],	
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+	"mounts": [
+		"source=/Users/debasish.mohapatra/.aws/credentials,target=/home/airflow/.aws/credentials,type=bind,consistency=cached"
+	],
 
-	// Configure tool-specific properties.
-	// "customizations": {},
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	"remoteUser": "root"
+	// Open the sub-folder with the source code
+	"workspaceFolder": "/workspaces/rec_viz",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"donjayamanne.python-extension-pack"
+			]
+		}
+	}
 }

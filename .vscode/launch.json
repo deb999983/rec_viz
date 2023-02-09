@@ -8,10 +8,10 @@
             "name": "debug_webserver",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/manage.py",
+            "program": "${workspaceFolder}/server/manage.py",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}",
-                "DJANGO_SETTINGS_MODULE": "settings",
+                "PYTHONPATH": "${workspaceFolder}/server/",
+                "DJANGO_SETTINGS_MODULE": "api.settings",
             },
             "args": [
                 "runserver",

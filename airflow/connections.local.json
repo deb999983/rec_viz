@@ -1,0 +1,22 @@
+{
+  "crawler_airflow_db": {
+    "conn_type": "postgres",
+    "description": "Airflow Database",
+    "login": "postgres",
+    "password": "postgres",
+    "host": "airbnb_db",
+    "port": 5432,
+    "schema": "airbnb",
+    "extra": ""
+  },
+  "aws_s3_crawler_data": {
+    "conn_type": "aws",
+    "description": "",
+    "login": "AKIA4TZFPY6TC5SVZZ7V",
+    "password": "o8GCdodQ7IxouYELKdHIUYNxTILP8dp0l7uF3r44",
+    "host": "",
+    "port": null,
+    "schema": "",
+    "extra": "{\"region_name\": \"us-east-1\"}"
+  }
+}

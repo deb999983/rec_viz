@@ -1,0 +1,3 @@
+CREATE DATABASE airflow;
+CREATE USER postgres WITH PASSWORD 'postgres';
+GRANT ALL PRIVILEGES ON DATABASE airflow TO postgres;
