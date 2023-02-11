@@ -13,7 +13,8 @@
 	],	
 
 	"mounts": [
-		"source=/Users/debasish.mohapatra/.aws/credentials,target=/home/airflow/.aws/credentials,type=bind,consistency=cached"
+		"source=/Users/debasish.mohapatra/.aws/credentials,target=/home/airflow/.aws/credentials,type=bind,consistency=cached",
+		"source=/tmp/airflow_recviz,target=/tmp/airflow_recviz,type=bind,consistency=cached"
 	],
 
 	// Open the sub-folder with the source code

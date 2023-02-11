@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import os
 
 from docker.types import Mount
@@ -71,9 +72,10 @@ def get_job_and_save_job_file(ti, job_key, **context):
         raise e
 
 
-def save_result(ti, job_info, **context):
+def save_result(ti, **context):
     from applications.job.models import Job, Code    
     try:
+        job_info = ti.xcom_pull(task_ids='get_job_and_save_job_file', dag_id='process_job', key='return_value')        
         job = Job.objects.get(pk=job_info['id'])
 
         path_params = get_data_path_params()
@@ -113,14 +115,18 @@ with DAG(
             "CODE_PATH": f"{path_params.get('data_path')}/code/python",
             "OUTPUT_PATH": f"{path_params.get('data_path')}/output/python"
         },
+        mem_limit=512 * 1024 * 1024,
         docker_url="tcp://docker-proxy:2375",
         mounts=[
             Mount(source=f"{path_params.get('data_path')}", target=f"{path_params.get('data_path')}", type="bind"),
         ],
-        network_mode="bridge"
+        network_mode="bridge",
+        auto_remove=True,
+        force_pull=True,
+        timeout=300
     )
-    save_job_result = DjangoOperator(task_id="save_result", python_callable=save_result, op_kwargs={"job_info": save_job_file.output})
+    save_job_result = DjangoOperator(task_id="save_result", python_callable=save_result)
     
     end = EmptyOperator(task_id='end', trigger_rule='none_failed')
 
-    wait_for_a_job >> save_job_file >> run_job >> save_job_result >> end
+    start >> wait_for_a_job >> save_job_file >> run_job >> save_job_result >> end
