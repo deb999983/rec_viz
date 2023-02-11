@@ -48,6 +48,8 @@ class Tracer:
  
 	
 	def save_output(self, file_name="output.json"):
-		print(f"Output: ============ {Call.to_dict(self.call_tree)} ===========")
+		t = Call.to_dict(self.call_tree)
+		print(f"Output: ============ {t} ===========")
 		with open(file_name, mode='w') as fp:
-			json.dump(Call.to_dict(self.call_tree), fp)
+			json.dump(t, fp)
+		return t

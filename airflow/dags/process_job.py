@@ -57,10 +57,13 @@ def get_job_and_save_job_file(ti, job_key, **context):
         job.save()
         
         print("Saved code to file", file)
+
+        file_name, ext = os.path.basename(job.source_file).rsplit('.', maxsplit=1)
         return {
             "id": job.id, 
             "file": job.source_file, 
-            "file_name": os.path.basename(job.source_file),
+            "input_file_name": os.path.basename(job.source_file),
+            "output_file_name": f'{file_name}.json',
             "func_name": job.source_code.func_name
         }
     except Job.DoesNotExist as e:
@@ -75,7 +78,7 @@ def save_result(ti, job_info, **context):
 
         path_params = get_data_path_params()
         output_path = f"{path_params['data_path']}/{path_params['output_path']}"
-        file = os.path.join(output_path, "python", job_info['file_name'])
+        file = os.path.join(output_path, "python", job_info['output_file_name'])
         
         with open(file, 'r') as fp:
             job.result = fp.read()
@@ -107,12 +110,12 @@ with DAG(
             "{{ task_instance.xcom_pull(task_ids='get_job_and_save_job_file', dag_id='process_job', key='return_value') }}",
         ],
         environment={
-            "CODE_PATH": '/data/code/python',
-            "OUTPUT_PATH": '/data/output/python'
+            "CODE_PATH": f"{path_params.get('data_path')}/code/python",
+            "OUTPUT_PATH": f"{path_params.get('data_path')}/output/python"
         },
         docker_url="tcp://docker-proxy:2375",
         mounts=[
-            Mount(source=f"{path_params.get('data_path')}", target="/data", type="bind"),
+            Mount(source=f"{path_params.get('data_path')}", target=f"{path_params.get('data_path')}", type="bind"),
         ],
         network_mode="bridge"
     )
