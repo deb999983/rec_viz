@@ -1,7 +1,12 @@
 {
-    "data_files": {
-        "airbnb_data": "app/data/Airbnb_data_New_York.csv",
-        "newyork_property_sales": "app/data/Property_sales_data_New_York.csv",
-        "weather_data": "app/data/Weather Data.xlsx"
+    "prod": {
+        "data_path": "/tmp/airflow_recviz/data",
+        "code_path": "code",
+        "output_path": "output"
+    },
+    "local": {
+        "data_path": "/workspaces/rec_viz/data",
+        "code_path": "code",
+        "output_path": "output"
     }
 }

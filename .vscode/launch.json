@@ -12,6 +12,8 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/server/",
                 "DJANGO_SETTINGS_MODULE": "api.settings",
+                "REDIS_HOST": "job_queue",
+                "REDIS_PORT": "6379"
             },
             "args": [
                 "runserver",
@@ -19,5 +21,32 @@
             "django": true,
             "justMyCode": false
         }, 
+        {
+            "name": "debug_dag",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/airflow/.local/bin/airflow",
+            "console": "integratedTerminal",
+            // "preLaunchTask": "import-airflow-variables",
+            "justMyCode": false,
+            "env": {
+                "AIRFLOW_HOME": "${workspaceFolder}/airflow/.airflow",
+                "DATA_FOLDER": "${workspaceFolder}/airflow/.airflow/data",
+                "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
+                "AIRFLOW__CORE__EXECUTOR": "DebugExecutor",
+                "AIRFLOW__CORE__DAGS_FOLDER": "${workspaceFolder}/airflow/dags",
+                "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://postgres:postgres@rec_viz_airflow_db:5432/airflow",
+                "AIRFLOW__WEBSERVER__WEB_SERVER_NAME": "localhost",
+                "PYTHONPATH": "${workspaceFolder}/airflow",
+                "REDIS_HOST": "job_queue",
+                "REDIS_PORT": "6379"
+            },
+            "args": [
+                "dags",
+                "test",
+                "process_job",
+                "2023-01-01"
+            ]
+        }        
     ]
 }

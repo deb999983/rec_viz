@@ -1,1 +1,1 @@
-from .django_operator import DjangoOperator, BranchDjangoOperator
+from .django_operator import DjangoOperator, BranchDjangoOperator, DjangoSensor

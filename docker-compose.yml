@@ -45,9 +45,12 @@ services:
       - job_queue
     ports:
       - 8000:8000
+    environment:
+      - REDIS_HOST=job_queue
+      - REDIS_PORT=6379
     volumes:
-      - ./server:/workspaces/rec_viz_server:rw
-      - ./common:/workspaces/rec_viz_server/common:rw
+      - ./common:/workspaces/server/common:rw
+      - ./applications:/workspaces/server/applications:rw
 
   airflow_server:
     image: airflow_server
@@ -56,14 +59,36 @@ services:
       dockerfile: airflow/Dockerfile
     container_name: airflow_server
     restart: always
+    environment:
+      - DOCKER_HOST=tcp://docker-proxy:2375
     depends_on:
       - rec_viz_airflow_db
     ports:
       - 8080:8080
     volumes:
-      - ./airflow:/workspaces/airflow:rw
       - ./common:/workspaces/airflow/common:rw
-      - ./server/applications:/workspaces/airflow/applications:rw
+      - ./applications:/workspaces/airflow/applications:rw
+      - /tmp/airflow_recviz:/tmp/airflow_recviz:rw
+
+  # docker-socket-proxy:
+  #   image: tecnativa/docker-socket-proxy:0.1.1
+  #   environment:
+  #     CONTAINERS: 1
+  #     IMAGES: 1
+  #     AUTH: 1
+  #     POST: 1
+  #   privileged: true
+  #   volumes:
+  #     - /var/run/docker.sock::/var/run/docker.sock
+  #   restart: always
+  docker-proxy:
+    image: bobrik/socat
+    command: "TCP4-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock"
+    ports:
+      - "2376:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  
+
 
 volumes:
   airflow_data: 

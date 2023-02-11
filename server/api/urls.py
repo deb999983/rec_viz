@@ -16,7 +16,9 @@ Including another URLconf
 from django.urls import path, include
 from drf_spectacular.views import SpectacularSwaggerSplitView, SpectacularAPIView
 
+
 urlpatterns = [
 	path('swagger/', SpectacularSwaggerSplitView.as_view(), name='swagger'),
 	path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('jobs/', include('applications.job.urls'), name='jobs'),
 ]

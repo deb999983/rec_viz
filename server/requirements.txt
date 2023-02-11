@@ -9,3 +9,4 @@ psycopg2
 requests
 boto3
 bs4
+redis

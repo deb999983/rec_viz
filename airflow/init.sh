@@ -12,7 +12,8 @@ export AIRFLOW__WEBSERVER__EXPOSE_CONFIG=true
 export DATA_FOLDER=${ROOT_DIR}/airflow/.airflow/data
 export AIRFLOW_HOME=${ROOT_DIR}/airflow/.airflow
 export PYTHONPATH="${ROOT_DIR}:${ROOT_DIR}/airflow"
-
+export REDIS_HOST="job_queue"
+export REDIS_PORT="6379"
 
 export AIRFLOW__API__AUTH_BACKENDS="airflow.api.auth.backend.session,airflow.api.auth.backend.basic_auth"
 

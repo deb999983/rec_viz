@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import ast
+import json
 import os
 import sys
 from visualizer.tracer import Tracer
@@ -13,5 +15,7 @@ def execute(file_name: str, func_name: str):
     tracer.save_output(os.path.join(output_path, f"{file_name}.output.json"))
 
 if __name__ == "__main__":
-    file_name, func_name = sys.argv[1], sys.argv[2]
+    params = ast.literal_eval(sys.argv[1])
+    print(f"============= {params} ============")
+    file_name, func_name = params["file_name"], params["func_name"]
     execute(file_name, func_name)

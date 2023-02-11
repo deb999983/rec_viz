@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "import-airflow-variables",
+            "command": "/home/airflow/.local/bin/airflow variables import ${workspaceFolder}/airflow/variables.local.json",
+            "type": "shell",
+            "options":{
+                "env": {
+                    "AIRFLOW_HOME": "${workspaceFolder}/airflow/.airflow",
+                }
+            }
+        },
+        // {
+        //     "label": "import-airflow-connections",
+        //     "command": "/home/airflow/.local/bin/airflow connections import ${workspaceFolder}/airflow/variables.local.json",
+        //     "type": "shell",
+        //     "dependsOn": "import-airflow-variables",
+        //     "options":{
+        //         "env": {
+        //             "AIRFLOW_HOME": "${workspaceFolder}/airflow/.airflow",
+        //         }
+        //     }
+        // }      
+    ]
+}
