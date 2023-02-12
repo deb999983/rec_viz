@@ -1,16 +1,15 @@
 from datetime import datetime
-import json
-import os
 
 from docker.types import Mount
 
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.empty import EmptyOperator
-from airflow.sensors.python import PythonSensor
+from airflow.operators.python import PythonOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 
-from django.db import transaction
+from airflow.utils.db import provide_session
+from airflow.models import XCom
 
 
 from operators.django import DjangoOperator, DjangoSensor
@@ -22,74 +21,61 @@ def get_data_path_params(is_local=False):
         
 
 def wait_for_job(ti, **context):
-    # from common import utils
-    # job_id = utils.dequeue()
-    # if not job_id:
-    #     return False            
-    from applications.job.models import Job
-    job = Job.objects.filter(status=Job.Status.QUEUED).first()
-    if not job:
-        return False
+    from common import utils
+    job_id = utils.dequeue()
+    if not job_id:
+        return False            
 
-    ti.xcom_push(key=f"wait_for_job.job_to_process", value=job.id)
+    ti.xcom_push(key=f"wait_for_job.job_to_process", value=job_id)
     return True
 
 def get_job_and_save_job_file(ti, job_key, **context):
-    from applications.job.models import Job, Code
-    
-    def save_code_to_file(job: Job, base_path):
-        code: Code = job.source_code
-        file_name = f'{job.code}_{code.func_name}_{job.created_on.timestamp()}.py'
-        file = os.path.join(base_path, code.language, file_name)
-        
-        with open(file, 'w') as fp:
-            fp.write(code.source)
-        return file
-            
+    from applications.job.models import Job            
     job_id = ti.xcom_pull(key=job_key)
     
     try:
-        job = Job.objects.get(pk=job_id)
-
         path_params = get_data_path_params()
-        file = save_code_to_file(job, f"{path_params['data_path']}/{path_params['code_path']}")
+        source_path = f"{path_params['data_path']}/{path_params['code_path']}"
         
-        job.source_file = file
-        job.save()
-        
-        print("Saved code to file", file)
-
-        file_name, ext = os.path.basename(job.source_file).rsplit('.', maxsplit=1)
+        job: Job = Job.prepare_for_run(job_id, source_path)
         return {
             "id": job.id, 
-            "file": job.source_file, 
-            "input_file_name": os.path.basename(job.source_file),
-            "output_file_name": f'{file_name}.json',
+            "input_file_name": f'{job.source_filename}.{job.source_code.extension}',
+            "output_file_name": f'{job.source_filename}.json',
             "func_name": job.source_code.func_name
         }
-    except Job.DoesNotExist as e:
-        print(f'Job {job_id} doesnt exist')
+    except Exception as e:
+        ti.xcom_push(key="error_info", value={"job_id": job_id})
         raise e
-
 
 def save_result(ti, **context):
-    from applications.job.models import Job, Code    
+    from applications.job.models import Job
+    
+    job_info = ti.xcom_pull(task_ids='get_job_and_save_job_file', dag_id='process_job', key='return_value')
     try:
-        job_info = ti.xcom_pull(task_ids='get_job_and_save_job_file', dag_id='process_job', key='return_value')        
-        job = Job.objects.get(pk=job_info['id'])
-
         path_params = get_data_path_params()
         output_path = f"{path_params['data_path']}/{path_params['output_path']}"
-        file = os.path.join(output_path, "python", job_info['output_file_name'])
         
-        with open(file, 'r') as fp:
-            job.result = fp.read()
-            job.save()
-        
-    except Job.DoesNotExist as e:
-        print(f"Job {job_info['id']} doesnt exist")
-        raise e
+        exit_code = int(ti.xcom_pull(task_ids='run_job', dag_id='process_job', key='return_value'))
+        Job.save_run_output(job_info['id'], output_path, exit_code)
+    except Exception as e:
+        ti.xcom_push(key="error_info", value={"job_id": job_info['id']})
+        raise e        
 
+def error_handler(ti, **context):
+    from applications.job.models import Job
+    error_info = ti.xcom_pull(dag_id='process_job', key='error_info')
+    if not error_info:
+        return
+    
+    job_id = error_info['job_id']
+    Job.reset_status(job_id)
+    
+@provide_session
+def cleanup_xcom(session=None, **context):
+    dag_run = context["dag_run"]
+    dag_run_id, dag_id = dag_run.run_id, dag_run.dag_id 
+    session.query(XCom).filter(XCom.dag_id == dag_id, XCom.run_id == dag_run_id).delete()
 
 with DAG(
     'process_job',
@@ -115,7 +101,7 @@ with DAG(
             "CODE_PATH": f"{path_params.get('data_path')}/code/python",
             "OUTPUT_PATH": f"{path_params.get('data_path')}/output/python"
         },
-        mem_limit=512 * 1024 * 1024,
+        mem_limit=256 * 1024 * 1024,
         docker_url="tcp://docker-proxy:2375",
         mounts=[
             Mount(source=f"{path_params.get('data_path')}", target=f"{path_params.get('data_path')}", type="bind"),
@@ -127,6 +113,13 @@ with DAG(
     )
     save_job_result = DjangoOperator(task_id="save_result", python_callable=save_result)
     
+    handle_error = DjangoOperator(task_id="error_handler", python_callable=error_handler, trigger_rule="one_failed")
+    
+    cleanup = PythonOperator(task_id="cleanup_xcom", python_callable=cleanup_xcom, trigger_rule='none_failed')
     end = EmptyOperator(task_id='end', trigger_rule='none_failed')
 
-    start >> wait_for_a_job >> save_job_file >> run_job >> save_job_result >> end
+    start >> wait_for_a_job >> save_job_file >> run_job >> save_job_result >> cleanup
+    [save_job_file, save_job_result] >> handle_error >> cleanup
+    cleanup >> end
+    
+    

@@ -1,4 +1,6 @@
 import hashlib
+import io
+import json
 from rest_framework.serializers import ModelSerializer
 from django.db import transaction
 
@@ -9,16 +11,17 @@ from common import utils
 class SourceCodeSerializer(ModelSerializer):
     class Meta:
         model = Code
-        fields = ('source', 'language', 'func_name',)
-
+        fields = '__all__'
+        read_only_fields = ('id', 'source_checksum',)
+    
 
 class JobSerializer(ModelSerializer):
     source_code = SourceCodeSerializer()
 
     class Meta:
         model = Job
-        fields = '__all__'
-        read_only_fields = ('id', 'code', 'status', 'source_file', 'error', 'result',)
+        fields = '__all__'        
+        read_only_fields = ('id', 'code', 'status', 'source_filename', 'error', 'result',)
         
     def create(self, validated_data):
         source_code = validated_data['source_code']
@@ -30,4 +33,11 @@ class JobSerializer(ModelSerializer):
             utils.enqueue(job.id)
             
         return job
-    
+
+    def to_representation(self, instance: Job):
+        ret = super().to_representation(instance)
+        if not instance.result:
+            return ret
+
+        ret['result'] = json.load(io.BytesIO(instance.result))
+        return ret

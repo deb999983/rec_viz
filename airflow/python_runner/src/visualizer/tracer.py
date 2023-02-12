@@ -1,5 +1,6 @@
 import json
 import sys
+import traceback
 from visualizer.call import Call
 
 
@@ -13,6 +14,7 @@ class Tracer:
 		self.call_stack = []
 		self.call_tree = None
 		self.call_id = 1
+		self.error = None
 	
 	def trace_calls(self, frame, event, arg):
 		if frame.f_code.co_name != self.func_name:
@@ -38,18 +40,24 @@ class Tracer:
 		return Tracer(func_name)
 
 	def run(self, file_name):
-		with open(file_name, 'rb') as f:
-			code = compile(f.read(), file_name, 'exec')
+		try:
+			with open(file_name, 'rb') as f:
+				code = compile(f.read(), file_name, 'exec')
 
-			# Trace calls.
-			sys.setprofile(self.trace_calls)   
-			exec(code, {})
-			sys.setprofile(None)
- 
+				# Trace calls.
+				sys.setprofile(self.trace_calls)   
+				exec(code, {})
+				sys.setprofile(None)
+		except Exception as e:
+			self.error = traceback.format_exc()
+			return e
 	
 	def save_output(self, file_name="output.json"):
 		t = Call.to_dict(self.call_tree)
 		# print(f"Output: ============ {t} ===========")
 		with open(file_name, mode='w') as fp:
 			json.dump(t, fp)
-		return t
+
+	def save_error(self, file_name="output.json"):
+		with open(file_name, mode='w') as fp:
+			json.dump(self.error, fp)
