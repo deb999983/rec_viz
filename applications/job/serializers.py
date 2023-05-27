@@ -34,10 +34,3 @@ class JobSerializer(ModelSerializer):
             
         return job
 
-    def to_representation(self, instance: Job):
-        ret = super().to_representation(instance)
-        if not instance.result:
-            return ret
-
-        ret['result'] = json.load(io.BytesIO(instance.result))
-        return ret

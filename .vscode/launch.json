@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "debug_webserver",
             "type": "python",
             "request": "launch",
@@ -20,7 +28,7 @@
             ],
             "django": true,
             "justMyCode": false
-        }, 
+        },
         {
             "name": "debug_dag",
             "type": "python",
@@ -47,6 +55,6 @@
                 "process_job",
                 "2023-01-01"
             ]
-        }        
+        }
     ]
 }
